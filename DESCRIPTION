@@ -1,0 +1,28 @@
+Package: npowerassignment
+Title: Implement Stratified Random Assignment Protocol for the FSC NPower RCT
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Thomas",
+           family = "McManus",
+           role = c("aut", "cre"),
+           email = "tmcmanus@blueprint-ade.ca")
+Description: 
+    This package retrieves new applicant records from tne NPower Salesforce database, 
+    assigns each one to treatment or control with a probability calculated on the basis 
+    of their demographic characteristics. 
+    As it is used, it tracks activity in various text files on google drive.
+    These logs are designed to be used within the package, as persistent records of
+    the assignemnts used, applicant ids assigned, for analysis and triage of 
+    demographic balance between experiment groups, and for methodological audit. 
+    Building this functionality as a package with a linked cloud data store serves
+    to enable visibility and collaboration within and outside of the Blueprint team, 
+    while establishing a reusable standard for implementing random assignment on our
+    projects in the future. 
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)
