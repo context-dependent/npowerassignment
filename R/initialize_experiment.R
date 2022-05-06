@@ -110,8 +110,9 @@ create_assignments_table <- function() {
         assignment_list_bundle_name = character(),
         assignment_list_name = character(), 
         applicant_id = character(), 
-        assignment_id = character(), 
-        assignment = character(), 
+        assignment_id = character(),
+        assignment_date = character(), 
+        assignment_label = character(), 
         activity_id = character(),
     )
 

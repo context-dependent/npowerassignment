@@ -1,38 +1,85 @@
+#' Assign a batch of applicants 
+#' 
+#' Take a batch of raw applicant data, process it for assignment
+#' Draw assignments, and upload them to the google drive. 
+#' 
+#' @export
 assign_cohort <- function(applicants) {
+
     stratification_parameters <- get_latest_stratification_parameters()
-    eligible_applicants <- extract_eligible_applicants(applicants, stratification_parameters)
+    used_assignments_sheet <- get_used_assignments()
+    used_assignments_data <- used_assignments_sheet |>
+        googlesheets4::read_sheet()
+    eligible_applicants <- extract_eligible_applicants(applicants, stratification_parameters, used_assignments_data)
+
+    if(nrow(eligible_applicants) == 0) {
+        message("No new eligible applicants to assign")
+        return(eligible_applicants)
+    }
+
     treatment_probabilities <- calculate_treatment_probabilities(eligible_applicants, stratification_parameters)
     assignment_lists <- get_latest_assignment_bundle()
+
+
 
     if(treatment_probabilities$same_list) {
         new_assignments <- assign_applicant_group(
             eligible_applicants, 
             treatment_probabilities$priority_gender, 
-            assignment_lists
+            assignment_lists, 
+            used_assignments_sheet, 
+            used_assignments_data
         )
     } else {
         pg_assignments <- assign_applicant_group(
             eligible_applicants |> dplyr::filter(priority_gender_group == 1),
             treatment_probabilities$priority_gender, 
-            assignment_lists
+            assignment_lists, 
+            used_assignments_sheet, 
+            used_assignments_data
         )
 
         non_pg_assignments <- assign_applicant_group(
             eligible_applicants |> dplyr::filter(priority_gender_group == 0), 
             treatment_probabilities$non_priority_gender, 
-            assignment_lists
+            assignment_lists, 
+            used_assignments_sheet, 
+            used_assignments_data
         )
 
-        new_assignments <- bind_rows(pg_assignments, non_pg_assignments)
+        new_assignments <- dplyr::bind_rows(pg_assignments, non_pg_assignments)
     }
 
     return(new_assignments)
 
 }
 
+read_applicant_file <- function(path) {
+
+    applicants <- readr::read_csv(path) |>
+        janitor::clean_names()
+
+    res <- applicants  |>
+        dplyr::transmute(
+            applicant_id = lead_id, 
+            priority_gender_group = as.numeric(gender_priority_group == "Yes"), 
+            assignment_eligible = as.numeric(rct_eligible == "Yes"), 
+            location = program_offered_in, 
+            program = being_considered_for
+        ) |>
+        dplyr::arrange(
+            applicant_id
+        )
+
+    return(res)
+
+    
+}
+
 extract_eligible_applicants <- function(
     applicants, 
-    stratification_parameters
+    stratification_parameters, 
+    used_assignments_data
 ) {
 
     eligible_locations <- stratification_parameters$eligible_locations  |> 
@@ -42,14 +89,15 @@ extract_eligible_applicants <- function(
         stringr::str_split(";") |>
         unlist()
 
-    eligible_applicants <- applicants  |>
+    fresh_applicants <- applicants  |>
         dplyr::filter(
             location %in% eligible_locations, 
             program %in% eligible_programs, 
-            assignment_eligible == 1
-        )
-    
-    return(eligible_applicants)
+            assignment_eligible == 1, 
+            ! (applicant_id %in% used_assignments_data$applicant_id)
+        ) 
+
+    return(fresh_applicants)
 
 }
 
@@ -86,12 +134,16 @@ calculate_treatment_probabilities <- function(
 
 }
 
-assign_applicant_group <- function(applicant_group, assignment_list_name, assignment_list_bundle) {
+assign_applicant_group <- function(
+    applicant_group, 
+    assignment_list_name, 
+    assignment_list_bundle, 
+    used_assignments_sheet, 
+    used_assignments_data
+) {
 
     activity_id <- log_activity("Assign Applicant Group")
-    used_assignments_sheet <- get_used_assignments()
-    used_assignments_data <- used_assignments_sheet |>
-        googlesheets4::read_sheet()
+    
     assignment_list <- googlesheets4::read_sheet(assignment_list_bundle, sheet = assignment_list_name)
     assignment_list_bundle_id <- googlesheets4::read_sheet(assignment_list_bundle, sheet = "meta")[["assignment_list_bundle_id"]][1]
     assignment_list_bundle_name <- assignment_list_bundle$name
@@ -112,12 +164,16 @@ assign_applicant_group <- function(applicant_group, assignment_list_name, assign
             assignment_list_name = assignment_list_name, 
             applicant_id, 
             assignment_id, 
+            assignment_date = lubridate::today(),
             assignment_label, 
             activity_id = activity_id,
         )
 
-    
-    googlesheets4::sheet_append(used_assignments, assigned_applicants, sheet = 1)
+    if(nrow(used_assignments_data > 0)) {
+        googlesheets4::sheet_append(used_assignments_sheet, assigned_applicants, sheet = 1)
+    } else {
+        googlesheets4::sheet_write(assigned_applicants, used_assignments_sheet, sheet = 1)
+    }
 
     return(assigned_applicants)
 

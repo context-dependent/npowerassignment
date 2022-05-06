@@ -7,8 +7,8 @@ default_parameters <- list(
     maximum_treatment_probability = 0.7, 
     block_size = 20,
     rep_target_gender_diversity = 0.5, 
-    eligible_programs = "JITA", 
-    eligible_locations = "Toronto;Peel;York"
+    eligible_programs = "Junior IT Analyst Program (JITA)", 
+    eligible_locations = "Greater Toronto Area - GTA, ON"
 )
 
 usethis::use_data(default_parameters, overwrite = TRUE)

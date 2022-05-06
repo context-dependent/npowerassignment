@@ -10,9 +10,6 @@ upload_assignment_list_bundle <- function(
     test = FALSE
 ) {
 
-    googledrive::drive_auth()
-    googlesheets4::gs4_auth()
-
     if(!is.null(custom_tag)) {
         name_tag <- paste0("_", custom_tag)
     } else {
