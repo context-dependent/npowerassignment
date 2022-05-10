@@ -99,6 +99,7 @@ update_assignment_log <- function(new_assignments, treatment_probabilities) {
     
 }
 
+#' @export
 read_applicant_file <- function(path) {
 
     applicants <- readr::read_csv(path) |>
