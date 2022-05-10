@@ -23,6 +23,7 @@ initialize_experiment <- function(
     test = FALSE
 ) {
     initial_parameters <- modifyList(default_parameters, custom_parameters)
+    set.seed(initial_parameters$seed)
     create_folder_structure()
     create_activity_log(test = test)
     create_stratification_parameters(initial_parameters,  test = test)
@@ -34,6 +35,7 @@ initialize_experiment <- function(
         test = test
     )
     create_assignments_table()
+    create_assignment_log()
 
     message("Experiment successfully initialized")
 
@@ -76,7 +78,7 @@ create_stratification_parameters <- function(
             "stratification-parameters", 
             type = "spreadsheet",
             overwrite = TRUE
-        ) %>%
+        ) |>
         googlesheets4::gs4_get()
     
     googlesheets4::sheet_write(
@@ -110,6 +112,7 @@ create_assignments_table <- function() {
         assignment_list_bundle_name = character(),
         assignment_list_name = character(), 
         applicant_id = character(), 
+        priority_gender_group = character(), 
         assignment_id = character(),
         assignment_date = character(), 
         assignment_label = character(), 
@@ -119,6 +122,41 @@ create_assignments_table <- function() {
     googlesheets4::sheet_write(
         assignments_schema, 
         wb_assignments, 
+        sheet = 1
+    )
+
+    invisible()
+
+}
+
+
+create_assignment_log <- function() {
+    
+    activity_id <- log_activity("Create Assignment Log")
+
+    wb_assignment_log <- googledrive::drive_create(
+        "assignment-log",  
+        type = "spreadsheet", 
+        overwrite = TRUE
+    )
+
+    assignment_log_schema <- tibble::tibble(
+        assignment_list_bundle_id = character(), 
+        assignment_list_bundle_name = character(),
+        treatment_probability_pg = character(), 
+        treatment_probability_npg = character(), 
+        assignment_date = character(), 
+        n_assigned = character(),
+        n_control = character(),  
+        n_treatment = character(), 
+        n_treatment_pg = character(), 
+        rep_treatment_pg = character(),
+        activity_id = character()
+    )
+
+    googlesheets4::sheet_write(
+        assignment_log_schema, 
+        wb_assignment_log, 
         sheet = 1
     )
 

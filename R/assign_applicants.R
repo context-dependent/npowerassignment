@@ -50,8 +50,53 @@ assign_cohort <- function(applicants) {
         new_assignments <- dplyr::bind_rows(pg_assignments, non_pg_assignments)
     }
 
+    update_assignment_log(new_assignments, treatment_probabilities)
+
     return(new_assignments)
 
+}
+
+
+update_assignment_log <- function(new_assignments, treatment_probabilities) {
+
+    cohort_summary <- new_assignments |>
+        dplyr::group_by(assignment_list_bundle_id, assignment_list_bundle_name, assignment_date, activity_id) |>
+        dplyr::summarize(
+            n_assigned = dplyr::n(), 
+            n_control = sum(assignment_label == "Control"), 
+            n_treatment = sum(assignment_label == "Treatment"), 
+            n_treatment_pg = sum(assignment_label == "Treatment" & priority_gender_group == 1), 
+            
+        ) |>
+
+        dplyr::ungroup() |>
+
+        dplyr::mutate(, 
+            treatment_probability_pg = treatment_probabilities$priority_gender_num, 
+            treatment_probability_npg = treatment_probabilities$non_priority_gender_num,
+            rep_treatment_pg = n_treatment_pg / n_treatment
+        ) |>
+
+        dplyr::select(
+            assignment_list_bundle_id,
+            assignment_list_bundle_name,
+            treatment_probability_pg, 
+            treatment_probability_npg, 
+            assignment_date, 
+            n_assigned,
+            n_control,  
+            n_treatment, 
+            n_treatment_pg, 
+            rep_treatment_pg,
+            activity_id
+        )
+
+    wb_assignment_log <- googledrive::drive_find("assignment-log") |>
+        googlesheets4::gs4_get()  |>
+        googlesheets4::sheet_append(cohort_summary)
+
+    invisible()
+    
 }
 
 read_applicant_file <- function(path) {
@@ -127,7 +172,9 @@ calculate_treatment_probabilities <- function(
     res <- list(
         same_list = pg_trt_list == non_pg_trt_list, 
         priority_gender = glue::glue("block-{stratification_parameters$block_size}_p-trt-{pg_trt_list * 100}"), 
-        non_priority_gender = glue::glue("block-{stratification_parameters$block_size}_p-trt-{non_pg_trt_list * 100}")
+        non_priority_gender = glue::glue("block-{stratification_parameters$block_size}_p-trt-{non_pg_trt_list * 100}"), 
+        priority_gender_num = pg_trt_list, 
+        non_priority_gender_num = non_pg_trt_list
     ) 
 
     return(res)
@@ -163,6 +210,7 @@ assign_applicant_group <- function(
             assignment_list_bundle_name = assignment_list_bundle_name, 
             assignment_list_name = assignment_list_name, 
             applicant_id, 
+            priority_gender_group, 
             assignment_id, 
             assignment_date = lubridate::today(),
             assignment_label, 

@@ -43,7 +43,7 @@ initialize_experiment(
 )
 ```
 
-Assign a cohort of applicants
+Assign a cohort of applicants:
 
 ``` r
 applicants <- sample_cohort
