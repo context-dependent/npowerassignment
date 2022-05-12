@@ -74,3 +74,25 @@ update_stratification_parameters <- function(
 
     invisible(wb_stratification_parameters)
 }
+
+write_or_append <- function(data, wb_name, sheet = NULL) {
+    
+    dr <- googledrive::drive_find(wb_name, type = "spreadsheet")
+
+    if(nrow(dr) > 0) {
+        wb <- googlesheets4::gs4_get(wb)
+        df <- wb |> googlesheets4::read_sheet(sheet = sheet)
+
+        if(nrow(df) > 0) {
+            googlesheets4::sheet_append(wb, data, sheet = sheet)
+            invisible()
+        } 
+    } else {
+        wb <- googledrive::drive_create(wb_name)
+    }
+
+    googlesheets4::sheet_write(data, wb, sheet = sheet)
+
+    invisible()
+
+}

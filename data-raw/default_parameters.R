@@ -4,11 +4,11 @@ default_parameters <- list(
     minimum_list_size = 5000, 
     overall_treatment_probability = 0.5,
     minimum_treatment_probability = 0.2, 
-    maximum_treatment_probability = 0.7, 
+    maximum_treatment_probability = 0.8, 
     block_size = 20,
     rep_target_gender_diversity = 0.5, 
-    seed = 489, 
-    eligible_programs = "Junior IT Analyst Program (JITA)", 
+    rep_minimum_gender_diversity = 0.4, 
+    eligible_programs = "Junior IT Analyst Program (JITA);Junior Data Analyst Program (JDA)", 
     eligible_locations = "Greater Toronto Area - GTA, ON"
 )
 

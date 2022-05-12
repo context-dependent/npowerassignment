@@ -100,7 +100,7 @@ update_assignment_log <- function(new_assignments, treatment_probabilities) {
 }
 
 #' @export
-read_applicant_file <- function(path) {
+read_applicant_file <- function(path, quiet = FALSE) {
 
     applicants <- readr::read_csv(path) |>
         janitor::clean_names()
@@ -111,10 +111,8 @@ read_applicant_file <- function(path) {
             priority_gender_group = as.numeric(gender_priority_group == "Yes"), 
             assignment_eligible = as.numeric(rct_eligible == "Yes"), 
             location = program_offered_in, 
-            program = being_considered_for
-        ) |>
-        dplyr::arrange(
-            applicant_id
+            program = being_considered_for, 
+            program_short = being_considered_for |> stringr::str_extract("[A-Z]{3}[A-Z]*")
         )
 
     return(res)
