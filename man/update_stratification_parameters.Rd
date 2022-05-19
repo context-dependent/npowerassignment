@@ -4,7 +4,11 @@
 \alias{update_stratification_parameters}
 \title{Modify active stratification parameters}
 \usage{
-update_stratification_parameters(parameter_updates = list(), test = FALSE)
+update_stratification_parameters(
+  parameter_updates = list(),
+  first = FALSE,
+  test = FALSE
+)
 }
 \description{
 Replace specific stratification parameters with

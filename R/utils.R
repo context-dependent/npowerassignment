@@ -7,27 +7,11 @@ log_activity <- function(activity_label, first = FALSE, test = FALSE) {
         test_flag = test
     )
 
-    activity_log <- googledrive::drive_find("activity-log")  |>
-        googlesheets4::gs4_get()
-
-    if(first) {
-        googlesheets4::sheet_write(activity_record, activity_log,  sheet = "Sheet1")
-    } else {
-        googlesheets4::sheet_append(activity_log, activity_record)
-    }
+    activity_record |> write_or_append("activity-log")
 
     return(activity_id)
 }
 
-get_latest_assignment_bundle <- function() {
-    bundles <- googledrive::drive_ls(path = "assignment-lists")
-    latest_bundle <- bundles  |>
-        dplyr::arrange(dplyr::desc(name))  |>
-        dplyr::slice(1)  |>
-        googlesheets4::gs4_get()
-
-    return(latest_bundle)
-}
 
 get_latest_stratification_parameters <- function() {
 
@@ -43,10 +27,16 @@ get_latest_stratification_parameters <- function() {
 }
 
 get_used_assignments <- function() {
-    used_assignments <- googledrive::drive_ls(path = "assignments") |>
-        googlesheets4::gs4_get() 
+    dr_used_assignments <- googledrive::drive_find("assignments") 
+    
+    if(nrow(dr_used_assignments) == 0) {
+        wb_used_assignments <- NULL  
+    } else {
+        wb_used_assignments <- dr_used_assignments |>
+            googlesheets4::gs4_get() 
+    }
 
-    return(used_assignments)
+    return(wb_used_assignments)
     
 }
 
@@ -55,22 +45,49 @@ get_used_assignments <- function() {
 #' Replace specific stratification parameters with 
 update_stratification_parameters <- function(
     parameter_updates = list(),
+    first = FALSE, 
     test = FALSE
 ) {
     activity_id <- log_activity("Update Stratification Parameters")
-    latest_parameters <- get_latest_stratification_parameters()
-    updated_parameters <- latest_parameters  |> modifyList(parameter_updates)  |>
+    if(!first) {
+        latest_parameters <- get_latest_stratification_parameters()
+        updated_parameters <- latest_parameters  |> 
+            modifyList(parameter_updates) 
+    } else {
+        updated_parameters <- parameter_updates
+    }
+    
+    updated_parameters |>
         tibble::as_tibble()  |>
         dplyr::mutate(
             date_time_created = Sys.time(), 
             activity_id = activity_id
-        )
+        ) |>
+        write_or_append("stratification-parameters")
 
-    wb_stratification_parameters <- googledrive::drive_find("stratification-parameters")  |>
-        googlesheets4::gs4_get()
+    invisible()
+}
 
-    wb_stratification_parameters  |>
-        googlesheets4::sheet_append(updated_parameters)
+write_or_append <- function(data, wb_name, sheet = "Sheet1") {
+    
+    dr <- googledrive::drive_find(wb_name, type = "spreadsheet")
 
-    invisible(wb_stratification_parameters)
+    if(nrow(dr) > 0) {
+        wb <- googlesheets4::gs4_get(dr)
+        df <- wb |> googlesheets4::read_sheet(sheet = sheet)
+
+        if(nrow(df) > 0) {
+            googlesheets4::sheet_append(wb, data, sheet = sheet)
+        } 
+    } else {
+        
+        sheets_in <- list(x = data)
+        names(sheets_in) <- sheet
+        wb <- googlesheets4::gs4_create(wb_name, sheets = sheets_in)
+    }
+
+    googlesheets4::sheet_write(data, wb, sheet = sheet)
+
+    invisible()
+
 }
