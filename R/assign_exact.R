@@ -1,9 +1,19 @@
-assign_exact <- function(applicants, n_offers_by_program = list(), seed) {
+#' Assign a table of applicants imported with read_applicant_file()
+#' 
+#' @param n_offers_by_program
+#' Controls the program-specific number of offers for the cohort of applicants
+#' being assigned, in the form `list(<program_short> = <number_of_offers>)`. 
+#' For example, in the first assignment round, we were required to assign 217
+#' JITA applicants and 155 JDA applicants to the treatment group. In this case, 
+#' `n_offers_by_program = list(JITA = 217, JDA = 155)`
+#' 
+#' @export
+assign_to_condition <- function(applicants, n_offers_by_program = list(), seed, browse = FALSE) {
 
     activity_id <- log_activity("Assign Applicant Batch")
 
     params <- get_latest_stratification_parameters()
-    new_assignments <- assign_applicant_batch_exact(eligible_applicants, n_offers_by_program, seed, activity_id)
+    new_assignments <- assign_applicant_batch_exact(applicants, n_offers_by_program, seed, activity_id, browse = browse)
     record_assignments_exact <- record_assignments_exact(applicants, new_assignments, seed, activity_id)
 
 }
@@ -46,13 +56,13 @@ record_assignments_exact <- function(applicants, new_assignments, seed, activity
     output <- applicant_summary_table |>
         dplyr::left_join(assignment_summary_table)
 
-    assignment_log |> write_or_append("assignment-log")
-    new_assignment |> write_or_append("assignments")
+    output |> write_or_append("assignment-log")
+    new_assignments |> write_or_append("assignments")
 
     invisible()
 }
 
-assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), seed, activity_id, browse = FALSE) {
+assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), seed, activity_id, ignore_existing = FALSE, browse = FALSE) {
 
     set.seed(seed)
 
@@ -62,8 +72,13 @@ assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(
 
     params <- get_latest_stratification_parameters()
     wb_assignments <- get_used_assignments()
-    dat_assignments <- wb_assignments |> googlesheets4::read_sheet()
-    eligible_applicants <- extract_eligible_applicants(applicants, params, dat_assignments)
+    
+    if(!is.null(wb_assignments)) {
+        dat_assignments <- wb_assignments |> googlesheets4::read_sheet()
+    } else {
+        dat_assignments <- NULL
+    }
+    eligible_applicants <- extract_eligible_applicants(applicants, params, dat_assignments, ignore_existing = ignore_existing)
     program_offers <- tibble::enframe(n_offers_by_program) |>
         dplyr::transmute(
             program_short = name, 
@@ -148,6 +163,9 @@ assign_applicant_group_exact <- function(applicant_group, n_offers_group, browse
 
 calc_stratified_offers <- function(program_cohort, params, n_offers) {
 
+
+    browser()
+
     n_app <- nrow(program_cohort)
     n_app_pg <- sum(program_cohort$priority_gender_group)
     n_app_non_pg <- n_app - n_app_pg
@@ -220,7 +238,8 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
 extract_eligible_applicants <- function(
     applicants, 
     stratification_parameters, 
-    used_assignments_data
+    used_assignments_data = NULL,
+    ignore_existing = FALSE
 ) {
 
     eligible_locations <- stratification_parameters$eligible_locations  |> 
@@ -235,9 +254,39 @@ extract_eligible_applicants <- function(
             location %in% eligible_locations, 
             program %in% eligible_programs, 
             assignment_eligible == 1, 
-            ! (applicant_id %in% used_assignments_data$applicant_id)
         ) 
+
+    if(ignore_existing) used_assignments_data <- NULL
+    
+    if(!is.null(used_assignments_data)) {
+        fresh_applicants <- fresh_applicants |>
+            dplyr::filter(
+                ! (applicant_id %in% used_assignments_data$applicant_id)
+            )
+    }
 
     return(fresh_applicants)
 
+}
+
+#' Import and clean up a report file of applicants from NPower. 
+#' @export
+read_applicant_file <- function(path, quiet = FALSE) {
+
+    applicants <- readr::read_csv(path) |>
+        janitor::clean_names()
+
+    res <- applicants  |>
+        dplyr::transmute(
+            applicant_id = lead_id, 
+            priority_gender_group = as.numeric(gender_priority_group == "Yes"), 
+            assignment_eligible = as.numeric(rct_eligible == "Yes"), 
+            location = program_offered_in, 
+            program = being_considered_for, 
+            program_short = being_considered_for |> stringr::str_extract("[A-Z]{3}[A-Z]*")
+        )
+
+    return(res)
+
+    
 }
