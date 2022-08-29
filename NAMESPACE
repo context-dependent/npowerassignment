@@ -3,6 +3,7 @@
 export("%>%")
 export(assign_applicant_batch_exact)
 export(assign_to_condition)
+export(extract_eligible_applicants)
 export(generate_assignment_block)
 export(generate_assignment_list)
 export(generate_assignment_list_bundle)
