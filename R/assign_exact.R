@@ -284,7 +284,7 @@ read_applicant_file <- function(path, quiet = FALSE) {
             priority_gender_group = as.numeric(gender_priority_group == "Yes"), 
             assignment_eligible = as.numeric(rct_eligible == "Yes"), 
             location = program_offered_in, 
-            prov = location |> stringr::str_extract("ON|AB"),
+            prov = program_offered_in |> stringr::str_extract("ON|AB"),
             program = being_considered_for, 
             program_short = being_considered_for |> stringr::str_extract("[A-Z]{3}[A-Z]*")
         )
