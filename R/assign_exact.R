@@ -163,6 +163,7 @@ assign_applicant_group_exact <- function(applicant_group, n_offers_group, browse
 
 }
 
+#' @export
 calc_stratified_offers <- function(program_cohort, params, n_offers) {
 
     n_app <- nrow(program_cohort)
@@ -184,8 +185,8 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
     pg_rep_min <- 0.4
     p_trt_pg_min <- (pg_rep_min * p_trt) / pg_rep 
 
-    if(abs(npg_rep - pg_rep) <= 0.2) {
-        # if the applicant group is closer to 50/50 than 60/40
+    if(abs(npg_rep - pg_rep) <= 0.21) {
+        # if the applicant group is closer to 50/50 than 61/39
         n_trt_pg <- ceiling(p_trt * n_app_pg)
         n_trt_non_pg <- n_offers - n_trt_pg
     } else if(p_trt_pg > trt_max) {
