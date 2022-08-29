@@ -238,7 +238,7 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
     return(n_offers_by_gender)
 }
 
-
+#' @export
 extract_eligible_applicants <- function(
     applicants, 
     stratification_parameters, 
@@ -284,7 +284,7 @@ read_applicant_file <- function(path, quiet = FALSE) {
         dplyr::transmute(
             applicant_id = lead_id, 
             priority_gender_group = as.numeric(gender_priority_group == "Yes"), 
-            assignment_eligible = as.numeric(rct_eligible == "Yes"), 
+            assignment_eligible = as.numeric(rct_eligible == "Yes" & previously_randomized == "No"), 
             location = program_offered_in, 
             prov = program_offered_in |> stringr::str_extract("ON|AB"),
             program = being_considered_for, 
