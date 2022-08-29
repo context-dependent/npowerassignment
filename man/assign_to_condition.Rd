@@ -4,7 +4,12 @@
 \alias{assign_to_condition}
 \title{Assign a table of applicants imported with read_applicant_file()}
 \usage{
-assign_to_condition(applicants, n_offers_by_program = list(), seed)
+assign_to_condition(
+  applicants,
+  n_offers_by_program = list(),
+  seed,
+  browse = FALSE
+)
 }
 \arguments{
 \item{n_offers_by_program}{Controls the program-specific number of offers for the cohort of applicants

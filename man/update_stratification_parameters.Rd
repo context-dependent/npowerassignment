@@ -11,5 +11,5 @@ update_stratification_parameters(
 )
 }
 \description{
-Replace specific stratification parameters with
+Modify active stratification parameters
 }
