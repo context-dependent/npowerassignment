@@ -14,3 +14,7 @@ offer_nums <- read_excel(data_path, sheet = "Number to be randomized in")
 locations <- unique(dat_raw$`Program Offered in:`)
 
 update_stratification_parameters(list(eligible_locations = "Greater Toronto Area - GTA, ON;Calgary, AB"))
+
+params <- get_latest_stratification_parameters()
+
+params

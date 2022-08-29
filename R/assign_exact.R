@@ -18,6 +18,7 @@ assign_to_condition <- function(applicants, n_offers_by_program = list(), seed, 
 
 }
 
+#' @export
 record_assignments_exact <- function(applicants, new_assignments, seed, activity_id) {
 
     applicant_summary_table <- applicants |>
@@ -62,6 +63,7 @@ record_assignments_exact <- function(applicants, new_assignments, seed, activity
     invisible()
 }
 
+#' @export
 assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), seed, activity_id, ignore_existing = FALSE, browse = FALSE) {
 
     set.seed(seed)
@@ -86,7 +88,7 @@ assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(
         )
 
     assignments <- eligible_applicants |>
-        dplyr::group_nest(program, program_short, .key = "program_cohorts") |>
+        dplyr::group_nest(program, province, program_short, .key = "program_cohorts") |>
         dplyr::mutate(assignment_date = Sys.Date()) |>
         dplyr::left_join(program_offers) |>
         dplyr::mutate(
