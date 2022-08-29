@@ -163,9 +163,6 @@ assign_applicant_group_exact <- function(applicant_group, n_offers_group, browse
 
 calc_stratified_offers <- function(program_cohort, params, n_offers) {
 
-
-    browser()
-
     n_app <- nrow(program_cohort)
     n_app_pg <- sum(program_cohort$priority_gender_group)
     n_app_non_pg <- n_app - n_app_pg
@@ -173,6 +170,8 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
     trt_max <- params$maximum_treatment_probability
 
     pg_rep <- n_app_pg / n_app
+    npg_rep <- n_app_non_pg / n_app
+
     p_trt <- n_offers / n_app
 
     p_trt_pg <- (pg_rep_target * p_trt) / pg_rep
@@ -183,7 +182,11 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
     pg_rep_min <- 0.4
     p_trt_pg_min <- (pg_rep_min * p_trt) / pg_rep 
 
-    if(p_trt_pg > trt_max) {
+    if(abs(npg_rep - pg_rep) <= 0.2) {
+        # if the applicant group is closer to 50/50 than 60/40
+        n_trt_pg <- ceiling(p_trt * n_app_pg)
+        n_trt_non_pg <- n_offers - n_trt_pg
+    } else if(p_trt_pg > trt_max) {
         # If the treatment probability for pg apps is over the max, 
         # we tweak it. 
         
@@ -201,7 +204,6 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
             }
         } else if(p_trt_non_pg > trt_max) {
             # If the treatment probabiltiy for non pg applicants is also over the max, 
-            # fuck it, we're sauced. 
 
         } else if(p_trt_pg_min > trt_max){
             # Otherwise, if the minimum treatment probability to achieve

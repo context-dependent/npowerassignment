@@ -1,6 +1,6 @@
 Package: npowerassignment
 Title: Implement Stratified Random Assignment Protocol for the FSC NPower RCT
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person(given = "Thomas",
            family = "McManus",
