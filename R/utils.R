@@ -12,7 +12,8 @@ log_activity <- function(activity_label, first = FALSE, test = FALSE) {
     return(activity_id)
 }
 
-
+#' Retrieve latest version of stratification parameters
+#' @export 
 get_latest_stratification_parameters <- function() {
 
     stratification_parameters <- googledrive::drive_find("stratification-parameters")  |>
@@ -42,7 +43,7 @@ get_used_assignments <- function() {
 
 #' Modify active stratification parameters
 #' 
-#' Replace specific stratification parameters with 
+#' @export
 update_stratification_parameters <- function(
     parameter_updates = list(),
     first = FALSE, 
