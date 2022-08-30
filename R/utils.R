@@ -84,10 +84,10 @@ write_or_append <- function(data, wb_name, sheet = "Sheet1") {
         
         sheets_in <- list(x = data)
         names(sheets_in) <- sheet
-        wb <- googlesheets4::gs4_create(wb_name, sheets = sheets_in)
+        wb <- googlesheets4::gs4_create(wb_name, sheets = sheets_in)        
+        googlesheets4::sheet_write(data, wb, sheet = sheet)
     }
 
-    googlesheets4::sheet_write(data, wb, sheet = sheet)
 
     invisible()
 

@@ -1,6 +1,13 @@
 # Assignment code for cohort assigned on 2022-08-29
 devtools::load_all()
 
+# Run assignment
+
+applicants <- read_applicant_file("Z:/FSC - NPower/data-2022/transfer/Cohort Applicants August 2022/NP Applicants 2022-08-29.csv")
+dat_offers <- readr::read_csv("Z:/FSC - NPower/data-2022/transfer/Cohort Applicants August 2022/NP Offers 2022-08-29.csv")
+
+assign_to_condition(applicants, n_offers_by_program_prov = dat_offers, seed = 1738)
+
 # Examine raw data to check for required changes
 # Changes to raw data:
 # - Created column to track previous randomization
@@ -27,15 +34,12 @@ params
 # Examine gender distribution in eligible applicants
 
 params <- get_latest_stratification_parameters()
-dat_apps <- read_applicant_file("Z:/FSC - NPower/data-2022/transfer/Cohort Applicants August 2022/NP Applicants 2022-08-29.csv")
 
 dat_apps |>
     dplyr::group_by(program_short, prov) |>
     dplyr::summarize(pg_rep = mean(priority_gender_group))
 
 dat_elapps <- extract_eligible_applicants(dat_apps, params)
-
-dat_offers <- readr::read_csv("Z:/FSC - NPower/data-2022/transfer/Cohort Applicants August 2022/NP Offers 2022-08-29.csv")
 
 dat_assign_eg <- prep_assignment_frame(dat_elapps, n_offers_by_program_prov = dat_offers, seed = 489, activity_id = "TEST")
 
