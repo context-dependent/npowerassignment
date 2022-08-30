@@ -8,12 +8,12 @@
 #' `n_offers_by_program = list(JITA = 217, JDA = 155)`
 #' 
 #' @export
-assign_to_condition <- function(applicants, n_offers_by_program = list(), seed, browse = FALSE) {
+assign_to_condition <- function(applicants, n_offers_by_program = list(), n_offers_by_program_prov = NULL, seed, browse = FALSE) {
 
     activity_id <- log_activity("Assign Applicant Batch")
 
     params <- get_latest_stratification_parameters()
-    new_assignments <- assign_applicant_batch_exact(applicants, n_offers_by_program, seed, activity_id, browse = browse)
+    new_assignments <- assign_applicant_batch_exact(applicants, n_offers_by_program, n_offers_by_program_prov, seed, activity_id, browse = browse)
     record_assignments_exact <- record_assignments_exact(applicants, new_assignments, seed, activity_id)
 
 }
