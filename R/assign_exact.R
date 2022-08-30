@@ -64,7 +64,7 @@ record_assignments_exact <- function(applicants, new_assignments, seed, activity
 }
 
 #' @export
-assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), seed, activity_id, ignore_existing = FALSE, browse = FALSE) {
+assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), n_offers_by_program_prov = NULL, seed, activity_id, ignore_existing = FALSE, browse = FALSE) {
 
     set.seed(seed)
 
@@ -81,16 +81,22 @@ assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(
         dat_assignments <- NULL
     }
     eligible_applicants <- extract_eligible_applicants(applicants, params, dat_assignments, ignore_existing = ignore_existing)
-    program_offers <- tibble::enframe(n_offers_by_program) |>
-        dplyr::transmute(
-            program_short = name, 
-            n_offers = unlist(value)
-        )
+    if(is.null(n_offers_by_program_prov)) {
+        program_offers <- tibble::enframe(n_offers_by_program) |>
+            dplyr::transmute(
+                program_short = name, 
+                n_offers = unlist(value)
+            )
+    } else {
+       program_offers <- n_offers_by_program_prov
+    }
 
-    assignments <- eligible_applicants |>
-        dplyr::group_nest(program, province, program_short, .key = "program_cohorts") |>
+    assignment_ready <- eligible_applicants |>
+        dplyr::group_nest(program, prov, program_short, .key = "program_cohorts") |>
         dplyr::mutate(assignment_date = Sys.Date()) |>
-        dplyr::left_join(program_offers) |>
+        dplyr::left_join(program_offers) 
+    
+    assignments <- assignment_ready |>
         dplyr::mutate(
             assignments = purrr::map2(
                 program_cohorts, 
@@ -143,19 +149,19 @@ assign_applicant_group_exact <- function(applicant_group, n_offers_group, browse
     assignments <- tibble::tibble(
         trt = c(rep(1, n_offers_group), rep(0, n_control))) |>
         dplyr::mutate(
-            assignment_label = case_when(
+            assignment_label = dplyr::case_when(
                 trt == 1 ~ "Treatment", 
                 trt == 0 ~ "Control"
             ) |>
-            fct_relevel(
+            forcats::fct_relevel(
                 "Control", 
                 "Treatment"
             ), 
-            assignment_id = uuid::UUIDgenerate(n = n())
+            assignment_id = uuid::UUIDgenerate(n = dplyr::n())
         )
 
     assigned_applicants <- applicant_group |>
-        dplyr::mutate(randomizer = runif(n())) |>
+        dplyr::mutate(randomizer = runif(dplyr::n())) |>
         dplyr::arrange(randomizer) |>
         dplyr::bind_cols(assignments)
 
@@ -185,8 +191,10 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
     pg_rep_min <- 0.4
     p_trt_pg_min <- (pg_rep_min * p_trt) / pg_rep 
 
-    if(abs(npg_rep - pg_rep) <= 0.21) {
-        # if the applicant group is closer to 50/50 than 61/39
+    if(abs(npg_rep - pg_rep) <= 0.20 | p_trt > 0.8) {
+        # if the applicant group is closer to 50/50 than 60/40, 
+        # or if the overall treatment probability is greater than 0.8, 
+        # don't strat
         n_trt_pg <- ceiling(p_trt * n_app_pg)
         n_trt_non_pg <- n_offers - n_trt_pg
     } else if(p_trt_pg > trt_max) {
