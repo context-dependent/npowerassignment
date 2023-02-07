@@ -8,10 +8,27 @@
 #' `n_offers_by_program = list(JITA = 217, JDA = 155)`
 #' 
 #' @export
+<<<<<<< Updated upstream
 assign_to_condition <- function(applicants, n_offers_by_program = list(), n_offers_by_program_prov = NULL, seed, browse = FALSE) {
 
+=======
+assign_to_condition <- function(applicants,
+                                n_offers_by_program = list(),
+                                n_offers_by_program_prov = NULL,
+                                seed,
+                                browse = FALSE) {
+>>>>>>> Stashed changes
     activity_id <- log_activity("Assign Applicant Batch")
+    new_assignments <- assign_applicant_batch_exact(
+        applicants,
+        n_offers_by_program,
+        n_offers_by_program_prov,
+        seed,
+        activity_id,
+        browse = browse
+    )
 
+<<<<<<< Updated upstream
     params <- get_latest_stratification_parameters()
     new_assignments <- assign_applicant_batch_exact(applicants, n_offers_by_program, n_offers_by_program_prov, seed, activity_id, browse = browse)
     record_assignments_exact <- record_assignments_exact(applicants, new_assignments, seed, activity_id)
@@ -21,6 +38,21 @@ assign_to_condition <- function(applicants, n_offers_by_program = list(), n_offe
 #' @export
 record_assignments_exact <- function(applicants, new_assignments, seed, activity_id) {
 
+=======
+    record_assignments_exact <- record_assignments_exact(
+        applicants,
+        new_assignments,
+        seed,
+        activity_id
+    )
+}
+
+#' @export
+record_assignments_exact <- function(applicants,
+                                     new_assignments,
+                                     seed,
+                                     activity_id) {
+>>>>>>> Stashed changes
     applicant_summary_table <- applicants |>
         dplyr::group_by(program) |>
         dplyr::summarize(
@@ -64,8 +96,18 @@ record_assignments_exact <- function(applicants, new_assignments, seed, activity
 }
 
 #' @export
+<<<<<<< Updated upstream
 assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), n_offers_by_program_prov = NULL, seed, activity_id, ignore_existing = FALSE, browse = FALSE) {
 
+=======
+assign_applicant_batch_exact <- function(applicants,
+                                         n_offers_by_program = list(),
+                                         n_offers_by_program_prov = NULL,
+                                         seed,
+                                         activity_id,
+                                         ignore_existing = FALSE,
+                                         browse = FALSE) {
+>>>>>>> Stashed changes
     set.seed(seed)
 
     if(browse) {
@@ -80,8 +122,18 @@ assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(
     } else {
         dat_assignments <- NULL
     }
+<<<<<<< Updated upstream
     eligible_applicants <- extract_eligible_applicants(applicants, params, dat_assignments, ignore_existing = ignore_existing)
     if(is.null(n_offers_by_program_prov)) {
+=======
+    eligible_applicants <- extract_eligible_applicants(
+        applicants,
+        params,
+        dat_assignments,
+        ignore_existing = ignore_existing
+    )
+    if (is.null(n_offers_by_program_prov)) {
+>>>>>>> Stashed changes
         program_offers <- tibble::enframe(n_offers_by_program) |>
             dplyr::transmute(
                 program_short = name, 
@@ -140,9 +192,16 @@ assign_program_cohort_exact <- function(program_cohort, n_offers_for_program, pa
 }
 
 
+<<<<<<< Updated upstream
 assign_applicant_group_exact <- function(applicant_group, n_offers_group, browse = FALSE) {
 
     if(browse) browser()
+=======
+assign_applicant_group_exact <- function(applicant_group,
+                                         n_offers_group,
+                                         browse = FALSE) {
+    if (browse) browser()
+>>>>>>> Stashed changes
 
     n_applicants <- nrow(applicant_group)
     n_control <- n_applicants - n_offers_group
@@ -296,8 +355,14 @@ read_applicant_file <- function(path, quiet = FALSE) {
             assignment_eligible = as.numeric(rct_eligible == "Yes" & previously_randomized == "No"), 
             location = program_offered_in, 
             prov = program_offered_in |> stringr::str_extract("ON|AB"),
+<<<<<<< Updated upstream
             program = being_considered_for, 
             program_short = being_considered_for |> stringr::str_extract("[A-Z]{3}[A-Z]*")
+=======
+            program = being_considered_for,
+            program_short = being_considered_for |>
+                stringr::str_extract("[A-Z]{3}[A-Z]*")
+>>>>>>> Stashed changes
         )
 
     return(res)
