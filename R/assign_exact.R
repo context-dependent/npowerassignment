@@ -8,11 +8,13 @@
 #' `n_offers_by_program = list(JITA = 217, JDA = 155)`
 #'
 #' @export
+
 assign_to_condition <- function(applicants,
                                 n_offers_by_program = list(),
                                 n_offers_by_program_prov = NULL,
                                 seed,
                                 browse = FALSE) {
+
     activity_id <- log_activity("Assign Applicant Batch")
     new_assignments <- assign_applicant_batch_exact(
         applicants,
@@ -28,15 +30,7 @@ assign_to_condition <- function(applicants,
     record_assignments_exact <- record_assignments_exact(applicants, new_assignments, seed, activity_id)
 }
 
-#' @export
-record_assignments_exact <- function(applicants, new_assignments, seed, activity_id) {
-    record_assignments_exact <- record_assignments_exact(
-        applicants,
-        new_assignments,
-        seed,
-        activity_id
-    )
-}
+
 
 #' @export
 record_assignments_exact <- function(applicants,
@@ -93,6 +87,7 @@ assign_applicant_batch_exact <- function(applicants,
                                          activity_id,
                                          ignore_existing = FALSE,
                                          browse = FALSE) {
+
     set.seed(seed)
 
     if (browse) {
@@ -113,6 +108,7 @@ assign_applicant_batch_exact <- function(applicants,
         dat_assignments,
         ignore_existing = ignore_existing
     )
+
     if (is.null(n_offers_by_program_prov)) {
         program_offers <- tibble::enframe(n_offers_by_program) |>
             dplyr::transmute(
@@ -244,7 +240,7 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
                 p_trt_pg <- p_trt_pg_min
             }
         } else if (p_trt_non_pg > trt_max) {
-            # If the treatment probabiltiy for non pg applicants
+            # If the treatment probabilty for non pg applicants
             # is also over the max,
         } else if (p_trt_pg_min > trt_max) {
             # Otherwise, if the minimum treatment probability to achieve
