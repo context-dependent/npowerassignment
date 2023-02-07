@@ -8,16 +8,35 @@
 #' `n_offers_by_program = list(JITA = 217, JDA = 155)`
 #'
 #' @export
-assign_to_condition <- function(applicants, n_offers_by_program = list(), n_offers_by_program_prov = NULL, seed, browse = FALSE) {
+
+assign_to_condition <- function(applicants,
+                                n_offers_by_program = list(),
+                                n_offers_by_program_prov = NULL,
+                                seed,
+                                browse = FALSE) {
+
     activity_id <- log_activity("Assign Applicant Batch")
+    new_assignments <- assign_applicant_batch_exact(
+        applicants,
+        n_offers_by_program,
+        n_offers_by_program_prov,
+        seed,
+        activity_id,
+        browse = browse
+    )
 
     params <- get_latest_stratification_parameters()
     new_assignments <- assign_applicant_batch_exact(applicants, n_offers_by_program, n_offers_by_program_prov, seed, activity_id, browse = browse)
     record_assignments_exact <- record_assignments_exact(applicants, new_assignments, seed, activity_id)
 }
 
+
+
 #' @export
-record_assignments_exact <- function(applicants, new_assignments, seed, activity_id) {
+record_assignments_exact <- function(applicants,
+                                     new_assignments,
+                                     seed,
+                                     activity_id) {
     applicant_summary_table <- applicants |>
         dplyr::group_by(program) |>
         dplyr::summarize(
@@ -61,7 +80,14 @@ record_assignments_exact <- function(applicants, new_assignments, seed, activity
 }
 
 #' @export
-assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(), n_offers_by_program_prov = NULL, seed, activity_id, ignore_existing = FALSE, browse = FALSE) {
+assign_applicant_batch_exact <- function(applicants,
+                                         n_offers_by_program = list(),
+                                         n_offers_by_program_prov = NULL,
+                                         seed,
+                                         activity_id,
+                                         ignore_existing = FALSE,
+                                         browse = FALSE) {
+
     set.seed(seed)
 
     if (browse) {
@@ -76,7 +102,13 @@ assign_applicant_batch_exact <- function(applicants, n_offers_by_program = list(
     } else {
         dat_assignments <- NULL
     }
-    eligible_applicants <- extract_eligible_applicants(applicants, params, dat_assignments, ignore_existing = ignore_existing)
+    eligible_applicants <- extract_eligible_applicants(
+        applicants,
+        params,
+        dat_assignments,
+        ignore_existing = ignore_existing
+    )
+
     if (is.null(n_offers_by_program_prov)) {
         program_offers <- tibble::enframe(n_offers_by_program) |>
             dplyr::transmute(
@@ -135,7 +167,9 @@ assign_program_cohort_exact <- function(program_cohort, n_offers_for_program, pa
 }
 
 
-assign_applicant_group_exact <- function(applicant_group, n_offers_group, browse = FALSE) {
+assign_applicant_group_exact <- function(applicant_group,
+                                         n_offers_group,
+                                         browse = FALSE) {
     if (browse) browser()
 
     n_applicants <- nrow(applicant_group)
@@ -206,7 +240,8 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
                 p_trt_pg <- p_trt_pg_min
             }
         } else if (p_trt_non_pg > trt_max) {
-            # If the treatment probabiltiy for non pg applicants is also over the max,
+            # If the treatment probabilty for non pg applicants
+            # is also over the max,
         } else if (p_trt_pg_min > trt_max) {
             # Otherwise, if the minimum treatment probability to achieve
             # the minimum level of pg representation is still greater
@@ -278,11 +313,14 @@ read_applicant_file <- function(path, quiet = FALSE) {
         dplyr::transmute(
             applicant_id = lead_id,
             priority_gender_group = as.numeric(gender_priority_group == "Yes"),
-            assignment_eligible = as.numeric(rct_eligible == "Yes"),
+            assignment_eligible = as.numeric(
+                rct_eligible == "Yes" & previously_randomized == "No"
+            ),
             location = program_offered_in,
             prov = program_offered_in |> stringr::str_extract("ON|AB"),
             program = being_considered_for,
-            program_short = being_considered_for |> stringr::str_extract("[A-Z]{3}[A-Z]*")
+            program_short = being_considered_for |>
+                stringr::str_extract("[A-Z]{3}[A-Z]*")
         )
 
     return(res)

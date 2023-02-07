@@ -8,13 +8,14 @@ devtools::load_all()
 d <- read_applicant_file()
 
 
-applicants <- read_applicant_file("Z:/FSC - NPower/data-2022/randomization/Cohort 3 Applicants December 2022/NP Applicants 2022-12-01.csv")
+applicants <- read_applicant_file("Z:/FSC - NPower/data-2022-2023/randomization/Cohort 3 Applicants December 2022/NP Applicants 2022-12-01.csv")
+
 
 
 # Issues
 # ------
 
-app_dat <- readr::read_csv("Z:/FSC - NPower/data-2022/randomization/Cohort 3 Applicants December 2022/NP Applicants 2022-12-01.csv") |>
+app_dat <- readr::read_csv("Z:/FSC - NPower/data-2022-2023/randomization/Cohort 3 Applicants December 2022/NP Applicants 2022-12-01.csv") |>
     janitor::clean_names()
 
 # 1. Offers in new format : Converted to prev manually
@@ -31,7 +32,7 @@ app_dat |>
 
 
 
-dat_offers <- readr::read_csv("Z:/FSC - NPower/data-2022/randomization/Cohort 3 Applicants December 2022/NP Offers 2022-12-01.csv")
+dat_offers <- readr::read_csv("Z:/FSC - NPower/data-2022-2023/randomization/Cohort 3 Applicants December 2022/NP Offers 2022-12-01.csv")
 dat_offers
 
 library(dplyr)
@@ -83,4 +84,13 @@ dat_assignment |>
 # The system is appropriately declining to stratify
 # the applicant cohorts
 
-assign_to_condition(applicants, n_offers_by_program_prov = dat_offers, seed = 1337)
+# The seed value 1337 is the representation of the word "LEET"
+# in the eponymous LEET SPEAK, a variant of written english
+# in which each letter of the alphabet is replaced with
+# some combination of non-alphabetic symbols.
+
+assign_to_condition(
+    applicants,
+    n_offers_by_program_prov = dat_offers,
+    seed = 1337
+)
