@@ -196,7 +196,8 @@ assign_applicant_group_exact <- function(applicant_group,
 }
 
 #' @export
-calc_stratified_offers <- function(program_cohort, params, n_offers) {
+calc_stratified_offers <- function(program_cohort, params, n_offers, browse = FALSE) {
+    if (browse) browser()
     n_app <- nrow(program_cohort)
     n_app_pg <- sum(program_cohort$priority_gender_group)
     n_app_non_pg <- n_app - n_app_pg
@@ -215,8 +216,11 @@ calc_stratified_offers <- function(program_cohort, params, n_offers) {
 
     pg_rep_min <- 0.4
     p_trt_pg_min <- (pg_rep_min * p_trt) / pg_rep
-
-    if (abs(npg_rep - pg_rep) <= 0.20 | p_trt > 0.8) {
+    if (p_trt_non_pg > 0.8) {
+        p_trt_non_pg <- 0.8
+        n_trt_non_pg <- ceiling(p_trt_non_pg * n_app_non_pg)
+        n_trt_pg <- n_offers - n_trt_non_pg
+    } else if (abs(npg_rep - pg_rep) <= 0.20 | p_trt > 0.8) {
         # if the applicant group is closer to 50/50 than 60/40,
         # or if the overall treatment probability is greater than 0.8,
         # don't strat
@@ -306,13 +310,14 @@ extract_eligible_applicants <- function(applicants,
 read_applicant_file <- function(path, quiet = FALSE) {
     applicants <- readr::read_csv(path) |>
         janitor::clean_names()
+    names(applicants) <- stringr::str_remove(names(applicants), "_c$")
 
     res <- applicants |>
         dplyr::transmute(
             applicant_id = lead_id,
             priority_gender_group = as.numeric(gender_priority_group == "Yes"),
             assignment_eligible = as.numeric(
-                rct_eligible == "Yes" & previously_randomized == "No"
+                rct_eligible %in% "Yes"
             ),
             location = program_offered_in,
             prov = program_offered_in |> stringr::str_extract("ON|AB"),
