@@ -14,7 +14,6 @@ assign_to_condition <- function(applicants,
                                 n_offers_by_program_prov = NULL,
                                 seed,
                                 browse = FALSE) {
-
     activity_id <- log_activity("Assign Applicant Batch")
     new_assignments <- assign_applicant_batch_exact(
         applicants,
@@ -87,7 +86,6 @@ assign_applicant_batch_exact <- function(applicants,
                                          activity_id,
                                          ignore_existing = FALSE,
                                          browse = FALSE) {
-
     set.seed(seed)
 
     if (browse) {
