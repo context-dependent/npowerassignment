@@ -2,16 +2,17 @@ devtools::load_all()
 
 library(dplyr)
 
+
 paths <- list(
     apps = file.path(
         "Z:/FSC - NPower/data-2022-2023/randomization",
-        "Cohort 5 and 6 Applicants April 2023",
-        "NP Applicants 2023-04-04.csv"
+        "Cohort 7 Applicants June 2023",
+        "NP Applicants 2023-05-23.csv"
     ),
     offers = file.path(
         "Z:/FSC - NPower/data-2022-2023/randomization",
-        "Cohort 5 and 6 Applicants April 2023",
-        "NP Offers 2023-04-04.csv"
+        "Cohort 7 Applicants June 2023",
+        "NP Offers 2023-05-23.csv"
     )
 )
 
@@ -50,16 +51,14 @@ applicants |>
     count(prov, program_short)
 
 # count of assignment-eligible applicants
-# | ON - JITA | 279 - 64 - 6 =  209 |
-# | AB - JITA |  95 -  2 - 1 =   92 |
 applicants |>
     count(prov, program_short, assignment_eligible)
 
 # Check gender balance of assignment-eligible applicants
-# - Priority gender group is over-represented in both provs
-# - AB's imbalance exceeds the stratification threshold,
-#   but its overall treatment probability is > .8,
-#   so stratification doesn't trigger.
+# - Priority gender group is slightly overrepresented in AB,
+#   roughly even in ON (49%)
+# - AB is triggering stratification, but such that pg (over-repped)
+#   has a higher treatment probability.
 applicants |>
     filter(assignment_eligible == 1) |>
     group_by(prov, program_short) |>
@@ -70,7 +69,7 @@ params <- get_latest_stratification_parameters()
 on_jita <- applicants |>
     filter(prov == "ON", program_short == "JITA", assignment_eligible == 1)
 
-on_jita_offers <- calc_stratified_offers(on_jita, params, 198)
+on_jita_offers <- calc_stratified_offers(on_jita, params, 194)
 on_jita_rep <- on_jita |>
     group_by(priority_gender_group) |>
     summarize(
@@ -82,7 +81,7 @@ on_jita_rep <- on_jita |>
 ab_jita <- applicants |>
     filter(prov == "AB", program_short == "JITA", assignment_eligible == 1)
 
-ab_jita_offers <- calc_stratified_offers(ab_jita, params, 78)
+ab_jita_offers <- calc_stratified_offers(ab_jita, params, 67)
 ab_jita_rep <- ab_jita |>
     group_by(priority_gender_group) |>
     summarize(
@@ -94,6 +93,6 @@ ab_jita_rep <- ab_jita |>
 on_jita_rep
 ab_jita_rep
 
-# The seed value 905 is the area code in Hamilton
+# The seed value 1789 is the first year of the french revolution
 
-assign_to_condition(applicants, n_offers_by_program_prov = offers, seed = 905)
+assign_to_condition(applicants, n_offers_by_program_prov = offers, seed = 1789)
