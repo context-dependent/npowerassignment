@@ -64,41 +64,41 @@ applicants |>
     filter(assignment_eligible == 1) |>
     group_by(prov, program_short) |>
     summarize(pg_rep = mean(priority_gender_group))
-
+offers
 params <- get_latest_stratification_parameters()
 
-on_jita <- applicants |>
-    filter(prov == "ON", program_short == "JITA", assignment_eligible == 1)
+on_jda <- applicants |>
+    filter(prov == "ON", program_short == "JDA", assignment_eligible == 1)
 
-on_jita_offers <- calc_stratified_offers(on_jita, params, 195)
-on_jita_rep <- on_jita |>
+on_jda_offers <- calc_stratified_offers(on_jda, params, 142)
+on_jda_rep <- on_jda |>
     group_by(priority_gender_group) |>
     summarize(
         n_assignments = n()
     ) |>
-    left_join(on_jita_offers) |>
+    left_join(on_jda_offers) |>
     mutate(
         n_ctrl = n_assignments - n_offers,
         p_trt = n_offers / n_assignments
     )
 
-ab_jita <- applicants |>
-    filter(prov == "AB", program_short == "JITA", assignment_eligible == 1)
+ab_jda <- applicants |>
+    filter(prov == "AB", program_short == "JDA", assignment_eligible == 1)
 
-ab_jita_offers <- calc_stratified_offers(ab_jita, params, 66)
-ab_jita_rep <- ab_jita |>
+ab_jda_offers <- calc_stratified_offers(ab_jda, params, 67)
+ab_jda_rep <- ab_jda |>
     group_by(priority_gender_group) |>
     summarize(
         n_assignments = n()
     ) |>
-    left_join(ab_jita_offers) |>
+    left_join(ab_jda_offers) |>
     mutate(
         n_ctrl = n_assignments - n_offers,
         p_trt = n_offers / n_assignments
     )
 
-on_jita_rep
-ab_jita_rep
+on_jda_rep
+ab_jda_rep
 
 # Find the eligible applicant who wasn't assigned to the control group
 # - were they assigned to the treatment group? no, the treatment group is the correct size
@@ -125,6 +125,6 @@ applicants |>
 
 
 
-# The seed value 622401 is the sku number for canada dry gingerale
+# The seed value 20230731 is the date of randomization in YYYYMMDD format
 
-assign_to_condition(applicants, n_offers_by_program_prov = offers, seed = 622401)
+assign_to_condition(applicants, n_offers_by_program_prov = offers, seed = 20230731)
