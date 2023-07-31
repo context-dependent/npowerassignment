@@ -1,17 +1,19 @@
 devtools::load_all()
+bpconnect::vpn_start()
+
 
 library(dplyr)
 
 paths <- list(
     apps = file.path(
         "Z:/FSC - NPower/data-2022-2023/randomization",
-        "Cohort 8 Applicants August 2023",
-        "NP Applicants 2023-07-18.csv"
+        "Cohort 9 Applicants August 21 2023",
+        "NP Applicants 2023-30-07.csv"
     ),
     offers = file.path(
         "Z:/FSC - NPower/data-2022-2023/randomization",
-        "Cohort 8 Applicants August 2023",
-        "NP Offers 2023-07-18.csv"
+        "Cohort 9 Applicants August 21 2023",
+        "NP Offers 2023-07-30.csv"
     )
 )
 
