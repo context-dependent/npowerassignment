@@ -1,30 +1,14 @@
 devtools::load_all()
 bpconnect::vpn_start()
 
+library(dplyr)
+
 z_home <- "Z:/FSC - NPower/data-2022-2023/randomization"
 z_round <- grep("Cohort 10", fs::dir_ls(z_home), value = TRUE)
 
 paths <- list(
     apps = grep("NP Applicants", fs::dir_ls(z_round), value = TRUE),
     offers = grep("NP Offers", fs::dir_ls(z_round), value = TRUE)
-)
-
-fs::dir_ls(z_home)
-
-
-library(dplyr)
-
-paths <- list(
-    apps = file.path(
-        "Z:/FSC - NPower/data-2022-2023/randomization",
-        "Cohort 10 Applicants ",
-        "NP Applicants 2023-30-07.csv"
-    ),
-    offers = file.path(
-        "Z:/FSC - NPower/data-2022-2023/randomization",
-        "Cohort 9 Applicants August 21 2023",
-        "NP Offers 2023-07-30.csv"
-    )
 )
 
 applicants <- read_applicant_file(paths$apps) |>
@@ -77,42 +61,40 @@ applicants |>
 offers
 params <- get_latest_stratification_parameters()
 
-on_jda <- applicants |>
-    filter(prov == "ON", program_short == "JDA", assignment_eligible == 1)
+on_jita <- applicants |>
+    filter(prov == "ON", program_short == "JITA", assignment_eligible == 1)
 
-on_jda_offers <- calc_stratified_offers(on_jda, params, 142)
-on_jda_rep <- on_jda |>
+on_jita_offers <- calc_stratified_offers(on_jita, params, 205)
+on_jita_rep <- on_jita |>
     group_by(priority_gender_group) |>
     summarize(
         n_assignments = n()
     ) |>
-    left_join(on_jda_offers) |>
+    left_join(on_jita_offers) |>
     mutate(
         n_ctrl = n_assignments - n_offers,
         p_trt = n_offers / n_assignments
     )
 
-ab_jda <- applicants |>
-    filter(prov == "AB", program_short == "JDA", assignment_eligible == 1)
+ab_jita <- applicants |>
+    filter(prov == "AB", program_short == "JITA", assignment_eligible == 1)
 
-ab_jda_offers <- calc_stratified_offers(ab_jda, params, 67)
-ab_jda_rep <- ab_jda |>
+ab_jita_offers <- calc_stratified_offers(ab_jita, params, 72)
+ab_jita_rep <- ab_jita |>
     group_by(priority_gender_group) |>
     summarize(
         n_assignments = n()
     ) |>
-    left_join(ab_jda_offers) |>
+    left_join(ab_jita_offers) |>
     mutate(
         n_ctrl = n_assignments - n_offers,
         p_trt = n_offers / n_assignments
     )
 
-on_jda_rep
-ab_jda_rep
+on_jita_rep
+ab_jita_rep
 
-# Find the eligible applicant who wasn't assigned to the control group
-# - were they assigned to the treatment group? no, the treatment group is the correct size
-
+# Check if eligible applicants have been previously assigned
 used_assignments <- get_used_assignments() |>
     googlesheets4::read_sheet()
 
@@ -124,17 +106,7 @@ applicants |>
     left_join(used_assignments) |>
     count(assignment_date)
 
-# They were previously assigned!
 
-applicants |>
-    filter(assignment_eligible == 1) |>
-    select(applicant_id) |>
-    left_join(used_assignments) |>
-    arrange(assignment_date) |>
-    select(applicant_id, trt)
-
-
-
-# The seed value 20230731 is the date of randomization in YYYYMMDD format
+# The seed value 20230731 is the date of the last round of randomization in YYYYMMDD format
 
 assign_to_condition(applicants, n_offers_by_program_prov = offers, seed = 20230731)

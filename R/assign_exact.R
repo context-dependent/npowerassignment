@@ -216,16 +216,17 @@ calc_stratified_offers <- function(program_cohort, params, n_offers, browse = FA
 
     pg_rep_min <- 0.4
     p_trt_pg_min <- (pg_rep_min * p_trt) / pg_rep
-    if (p_trt_non_pg > 0.8) {
-        p_trt_non_pg <- 0.8
-        n_trt_non_pg <- ceiling(p_trt_non_pg * n_app_non_pg)
-        n_trt_pg <- n_offers - n_trt_non_pg
-    } else if (abs(npg_rep - pg_rep) <= 0.20 | p_trt > 0.8) {
+
+    if (abs(npg_rep - pg_rep) <= 0.20 || p_trt > 0.8) {
         # if the applicant group is closer to 50/50 than 60/40,
         # or if the overall treatment probability is greater than 0.8,
         # don't strat
         n_trt_pg <- ceiling(p_trt * n_app_pg)
         n_trt_non_pg <- n_offers - n_trt_pg
+    } else if (p_trt_non_pg > 0.8) {
+        p_trt_non_pg <- 0.8
+        n_trt_non_pg <- ceiling(p_trt_non_pg * n_app_non_pg)
+        n_trt_pg <- n_offers - n_trt_non_pg
     } else if (p_trt_pg > trt_max) {
         # If the treatment probability for pg apps is over the max,
         # we tweak it.
