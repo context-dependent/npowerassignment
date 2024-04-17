@@ -316,7 +316,7 @@ read_applicant_file <- function(path, quiet = FALSE) {
     res <- applicants |>
         dplyr::transmute(
             applicant_id = lead_id,
-            priority_gender_group = as.numeric(gender_priority_group == "Yes"),
+            priority_gender_group = as.numeric(gender_priority_group %in% "Yes"),
             assignment_eligible = as.numeric(
                 rct_eligible %in% "Yes"
             ),
